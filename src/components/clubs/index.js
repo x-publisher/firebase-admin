@@ -5,56 +5,26 @@ import { extractFirebaseDBObject as extract } from '../../helpers'
 
 import { getClubs } from '../../services/firebase/db'
 
-import Table from '../ui/Table'
+import TableData from '../TableData'
 
 export default class Clubs extends Component {
-  state = {
-    clubs: {}
-  }
-
-  componentDidMount = async () => {
-    const clubs = await getClubs()
-    this.setState({ clubs })
-
-    console.log(
-      clubs
-    )
-  }
-
   render() {
-    const { clubs } = this.state
-
-    const rowNames = [
-      'id',
-      'displayname',
-      'image',
-      'city',
-      'desc'
-    ]
-
-    const rows = [
-      extract(clubs).map(({
-        id,
-        displayname,
-        image,
-        city,
-        desc
-      }) => ([
-        id,
-        displayname,
-        image,
-        city,
-        desc
-      ]))
-    ]
-
-    console.log(rows)
+    const firebaseTableConfig = {
+      ref: 'clubs',
+      rowNames: [
+        'id',
+        'displayname',
+        'image',
+        'city',
+        'desc'
+      ]
+    }
 
     return (
       <div>
-        <Table
-          rowNames={rowNames}
-          rows={rows} />
+        <TableData
+          config={firebaseTableConfig}
+        />
       </div>
     )
   }
