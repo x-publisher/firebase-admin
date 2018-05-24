@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, Fragment } from 'react'
 import styled from 'styled-components'
 
 import Button from '@material-ui/core/Button'
@@ -16,72 +16,136 @@ import Slide from '@material-ui/core/Slide'
 
 import { Formik } from 'formik';
 
+import Img from './Img'
+
 import {
   isUrl,
   extractFirebaseDBObject as extract
 } from '../../../helpers'
 
+import {
+  upload as storageUpload,
+} from '../../../services/firebase/storage'
+
+import shortid from 'shortid'
+
 const Transition = props => (
   <Slide direction="up" {...props} />
 )
 
-const Form = ({
-  data,
-  columns,
-  submit
-}) => {
-  console.log(columns, data)
+const uploadFile = async (event, firebaseRef) => {
+  const data = event.currentTarget.files[0]
 
-  return (
-    <Formik
-      initialValues={data}
-      onSubmit={async (values, { setSubmitting }) => {
-        await submit(values)
+  const metaData = {
+    contentType: data.type,
+    name: `${shortid.generate()}-${data.name}`
+  }
 
-        setSubmitting(false)
-      }}
-      render={({
-        values,
-        errors,
-        touched,
-        handleBlur,
-        handleChange,
-        handleSubmit,
-        isSubmitting,
-      }) => {
-        return (
-          <form onSubmit={handleSubmit}>
-            {Object.entries(values).map(([key, value]) => {
-              const typeOfKey = columns.filter(({ name, type }) => (
-                name === key
-              ))[0].type
-              
-              if (typeOfKey === 'string') {
-                return (
-                  <input
-                    type="text"
-                    value={value}
-                    name={key}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    key={key} />
-                )
+  const url = await storageUpload(firebaseRef, {
+    file:
+    data, metaData
+  })
+
+  return url
+}
+
+class Form extends Component {
+  state = {
+    imagesUrls: {}
+  }
+
+  render() {
+    const {
+      data,
+      columns,
+      submit,
+      upload,
+      firebaseRef,
+    } = this.props
+
+    return (
+      <Formik
+        initialValues={data}
+        enableReinitialize
+        onSubmit={async (_values, { setSubmitting }) => {
+          const {
+            imagesUrls
+          } = this.state
+
+          let values = { ..._values }
+
+          Object.entries(values).map(([key, value]) => {
+            Object.entries(imagesUrls).forEach(([_key, url]) => {
+              if (key === _key) {
+                values[key] = url
               }
+            })
+          })
 
-              if (typeOfKey === 'image') {
-                return (
-                  <div>image here</div>
-                )
-              }
-            })}
-            <button type="submit" disabled={isSubmitting}>
-              Submit
-            </button>
-          </form>
-        )
-      }}
-    />
-  )
+          await submit(values)
+
+          setSubmitting(false)
+        }}
+        render={({
+          values,
+          errors,
+          touched,
+          handleBlur,
+          handleChange,
+          handleSubmit,
+          isSubmitting,
+          setFieldValue,
+        }) => {
+          return (
+            <form onSubmit={handleSubmit}>
+              {Object.entries(values).map(([key, value]) => {
+                const typeOfKey = columns.filter(({ name }) => (
+                  name === key
+                ))[0].type
+
+                if (typeOfKey === 'string') {
+                  return (
+                    <div key={key}>
+                      <label htmlFor={key}>{key}</label>
+                      <input
+                        type="text"
+                        value={value}
+                        name={key}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        key={key} />
+                    </div>
+                  )
+                }
+
+                if (typeOfKey === 'image') {
+                  return (
+                    <div key={key}>
+                      <Img src={this.state.imagesUrls[key] || value} />
+                      <input
+                        type="file"
+                        name={key}
+                        onChange={async event => {
+                          const url = await uploadFile(event, firebaseRef)
+
+                          let imagesUrls = { ...this.state.imagesUrls }
+                          imagesUrls[key] = url
+
+                          this.setState({ imagesUrls })
+                        }} />
+                    </div>
+                  )
+                }
+              })}
+              <button type="submit" disabled={isSubmitting}>
+                Submit
+              </button>
+            </form>
+          )
+        }}
+      />
+    )
+  }
 }
 
 export default class DialogComponent extends Component {
@@ -91,10 +155,10 @@ export default class DialogComponent extends Component {
       onClose,
       changingData,
       columns,
-      update
+      update,
+      uploadFile,
+      firebaseRef
     } = this.props
-
-    // console.log(changingData)
 
     return (
       <Dialog
@@ -123,7 +187,9 @@ export default class DialogComponent extends Component {
           <Form
             data={changingData}
             columns={columns}
-            submit={update} />
+            submit={update}
+            upload={uploadFile}
+            firebaseRef={firebaseRef} />
         </div>
       </Dialog>
     )

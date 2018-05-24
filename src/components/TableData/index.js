@@ -4,8 +4,14 @@ import Table from './ui'
 
 import {
   getByRef,
-  updateByRef
+  updateByRef,
+  createByRef,
+  removeByRef,
 } from '../../services/firebase/db'
+
+import {
+  upload
+} from '../../services/firebase/storage'
 
 import ChangeDialog from './ui/ChangeDialog'
 import CreateDialog from './ui/CreateDialog'
@@ -17,6 +23,8 @@ import {
 
 // Relative UI components
 import ButtonAdd from './ui/ButtonAdd'
+
+import shortid from 'shortid'
 
 export default class TableData extends Component {
   state = {
@@ -32,10 +40,12 @@ export default class TableData extends Component {
   }
 
   initializeData = async () => {
+    console.log(111)
+
     const { ref } = this.props.config
 
     const data = await getByRef(ref)
-    
+
     this.setState({ data })
   }
 
@@ -46,12 +56,19 @@ export default class TableData extends Component {
     })
   }
 
-  removeEntryButtonClick = id => {
-    
+  removeEntryButtonClick = async id => {
+    const { ref } = this.props.config
+
+    await removeByRef(`${ref}/${id}`)
+
+    this.initializeData()
   }
 
   handleCloseChangeDialog = () => {
-    this.setState({ changeDialogIsOpen: false })
+    this.setState({
+      changeDialogIsOpen: false,
+      changingDataId: null
+    })
   }
 
   updateEntry = async data => {
@@ -72,9 +89,7 @@ export default class TableData extends Component {
   createEntry = async data => {
     const { ref } = this.props.config
 
-    console.log(data)
-
-    // await updateByRef(`${ref}/${changingDataId}`, data)
+    await createByRef(ref, data)
 
     this.initializeData()
   }
@@ -83,8 +98,24 @@ export default class TableData extends Component {
     this.setState({ createDialogIsOpen: false })
   }
 
+  uploadFile = async (id, data, fieldName) => {
+    const metaData = {
+      contentType: data.type,
+      name: `${shortid.generate()}-${data.name}`
+    }
+  
+    const { ref } = this.props.config
+
+    const url = await upload(`${ref}/${id}`, {
+      file: data,
+      metaData
+    })
+
+    await this.updateEntry({ [fieldName]: url })
+  }
+
   render() {
-    const { columns } = this.props.config
+    const { ref, columns } = this.props.config
     
     const {
       data,
@@ -105,9 +136,15 @@ export default class TableData extends Component {
     } = this
 
     let changingDataObj = {}
-    
+
+    console.log('changingDataId', changingDataId)
+    console.log('data', data)
+    console.log('columns', columns)
+    console.log('changingDataObj', changingDataObj)
+    console.log('---')
+
     const changingData = changingDataId && Object.entries(data[changingDataId])
-      .filter(([key, value]) => (
+      .filter(([key]) => (
         columns.some(({ name }) => (
           key === name
         ))
@@ -127,13 +164,17 @@ export default class TableData extends Component {
           isOpen={changeDialogIsOpen}
           changingData={changingDataObj}
           columns={columns}
-          update={updateEntry} />
+          update={updateEntry}
+          uploadFile={this.uploadFile}
+          firebaseRef={ref} />
           
         <CreateDialog
           onClose={handleCloseCreateDialog}
           isOpen={createDialogIsOpen}
           columns={columns}
-          create={createEntry} />
+          create={createEntry}
+          uploadFile={this.uploadFile}
+          firebaseRef={ref} />
 
         <ButtonAdd
           onClick={this.createEntryButtonClick} />

@@ -16,93 +16,144 @@ import Slide from '@material-ui/core/Slide'
 
 import { Formik } from 'formik';
 
+import Img from './Img'
+
 import {
   isUrl,
-  extractFirebaseDBObject as extract
+  extractFirebaseDBObject as extract,
 } from '../../../helpers'
+
+import {
+  upload as storageUpload,
+} from '../../../services/firebase/storage'
+
+import shortid from 'shortid'
 
 const Transition = props => (
   <Slide direction="up" {...props} />
 )
 
-const Form = ({
-  columns,
-  submit
-}) => {
-  const initialValues = {}
+const uploadFile = async (event, firebaseRef) => {
+  const data = event.currentTarget.files[0]
 
-  columns.forEach(({ name, type }) => {
-    if (type !== 'id')
-      initialValues[name] = ''
+  const metaData = {
+    contentType: data.type,
+    name: `${shortid.generate()}-${data.name}`
+  }
+
+  const url = await storageUpload(firebaseRef, {
+    file:
+    data, metaData
   })
-  
-  return (
-    <Formik
-      initialValues={initialValues}
-      onSubmit={async (values, { setSubmitting }) => {
-        await submit(values)
 
-        setSubmitting(false)
-      }}
-      render={({
-        values,
-        errors,
-        touched,
-        handleBlur,
-        handleChange,
-        handleSubmit,
-        isSubmitting,
-      }) => {
-        return (
-          <form onSubmit={handleSubmit}>
-            {Object.entries(values).map(([key, value]) => {
-              const typeOfKey = columns.filter(({ name, type }) => (
-                name === key
-              ))[0].type
+  return url
+}
 
-              if (typeOfKey === 'string') {
-                return (
-                  <Fragment key={key}>
-                    <label htmlFor={key}>{key}</label>
-                    <input
-                      type="text"
-                      value={value}
-                      name={key}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      key={key} />
-                  </Fragment>
-                )
+class Form extends Component {
+  state = {
+    imagesUrls: {}
+  }
+
+  render() {
+    const {
+      columns,
+      submit,
+      upload,
+      firebaseRef,
+    } = this.props
+
+    const initialValues = {}
+
+    columns.forEach(({ name, type }) => {
+      if (type !== 'id')
+        initialValues[name] = ''
+    })
+
+    return (
+      <Formik
+        initialValues={initialValues}
+        onSubmit={async (_values, { setSubmitting }) => {
+          const {
+            imagesUrls
+          } = this.state
+
+          let values = { ..._values }
+
+          Object.entries(values).map(([key, value]) => {
+            Object.entries(imagesUrls).forEach(([_key, url]) => {
+              if (key === _key) {
+                values[key] = url
               }
+            })
+          })
 
-              if (typeOfKey === 'image') {
-                return <div>image here</div>
-              }
-            })}
+          await submit(values)
 
-            {/* {Object.entries(values).map(([key, value]) => {
-              if (isUrl(value)) {
-                return <div key={key}>img here</div>
-              }
+          setSubmitting(false)
+        }}
+        render={({
+          values,
+          errors,
+          touched,
+          handleBlur,
+          handleChange,
+          handleSubmit,
+          isSubmitting,
+        }) => {
+          return (
+            <form onSubmit={handleSubmit}>
+              {Object.entries(values).map(([key, value]) => {
+                const typeOfKey = columns.filter(({ name, type }) => (
+                  name === key
+                ))[0].type
 
-              return (
-                <input
-                  type="text"
-                  value={value}
-                  name={key}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  key={key} />
-              )
-            })} */}
-            <button type="submit" disabled={isSubmitting}>
-              Submit
-            </button>
-          </form>
-        )
-      }}
-    />
-  )
+                if (typeOfKey === 'string') {
+                  return (
+                    <div key={key}>
+                      <label htmlFor={key}>{key}</label>
+                      <input
+                        type="text"
+                        value={value}
+                        name={key}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        key={key} />
+                    </div>
+                  )
+                }
+
+                if (typeOfKey === 'image') {
+                  return (
+                    <div key={key}>
+                      <Img src={value} />
+                      <input
+                        type="text"
+                        value={this.state.imagesUrls[key] || ''}
+                        readOnly />
+                      <input
+                        type="file"
+                        name={key}
+                        onChange={async event => {
+                          const url = await uploadFile(event, firebaseRef)
+
+                          let imagesUrls = { ...this.state.imagesUrls }
+                          imagesUrls[key] = url
+
+                          this.setState({ imagesUrls })
+                        }} />
+                    </div>
+                  )
+                }
+              })}
+              <button type="submit" disabled={isSubmitting}>
+                Submit
+              </button>
+            </form>
+          )
+        }}
+      />
+    )
+  }
 }
 
 export default class CreateDialog extends Component {
@@ -111,7 +162,9 @@ export default class CreateDialog extends Component {
       isOpen,
       onClose,
       columns,
-      create
+      create,
+      uploadFile,
+      firebaseRef,
     } = this.props
 
     return (
@@ -140,7 +193,9 @@ export default class CreateDialog extends Component {
           }}>
           <Form
             columns={columns}
-            submit={create} />
+            submit={create}
+            upload={uploadFile}
+            firebaseRef={firebaseRef} />
         </div>
       </Dialog>
     )
