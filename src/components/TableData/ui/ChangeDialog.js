@@ -27,9 +27,11 @@ const Transition = props => (
 
 const Form = ({
   data,
-  rowNames,
+  columns,
   submit
 }) => {
+  console.log(columns, data)
+
   return (
     <Formik
       initialValues={data}
@@ -50,18 +52,27 @@ const Form = ({
         return (
           <form onSubmit={handleSubmit}>
             {Object.entries(values).map(([key, value]) => {
-              if (isUrl(value)) {
-                return <div>img here</div>
+              const typeOfKey = columns.filter(({ name, type }) => (
+                name === key
+              ))[0].type
+              
+              if (typeOfKey === 'string') {
+                return (
+                  <input
+                    type="text"
+                    value={value}
+                    name={key}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    key={key} />
+                )
               }
 
-              return (
-                <input
-                  type="text"
-                  value={value}
-                  name={key}
-                  onChange={handleChange}
-                  onBlur={handleBlur} />
-              )
+              if (typeOfKey === 'image') {
+                return (
+                  <div>image here</div>
+                )
+              }
             })}
             <button type="submit" disabled={isSubmitting}>
               Submit
@@ -79,7 +90,7 @@ export default class DialogComponent extends Component {
       isOpen,
       onClose,
       changingData,
-      rowNames,
+      columns,
       update
     } = this.props
 
@@ -111,7 +122,7 @@ export default class DialogComponent extends Component {
           }}>
           <Form
             data={changingData}
-            rowNames={rowNames}
+            columns={columns}
             submit={update} />
         </div>
       </Dialog>

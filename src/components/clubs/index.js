@@ -11,12 +11,23 @@ export default class Clubs extends Component {
   render() {
     const firebaseTableConfig = {
       ref: 'clubs',
-      rowNames: [
-        'id',
-        'displayname',
-        'image',
-        'city',
-        'desc'
+      columns: [
+        {
+          name: 'id',
+          type: 'id'
+        }, {
+          name: 'displayname',
+          type: 'string'
+        }, {
+          name: 'image',
+          type: 'image'
+        }, {
+          name: 'city',
+          type: 'string'
+        }, {
+          name: 'desc',
+          type: 'string'
+        }
       ]
     }
 

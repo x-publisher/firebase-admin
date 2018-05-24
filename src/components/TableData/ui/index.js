@@ -20,7 +20,7 @@ import { extractFirebaseDBObject as extract } from '../../../helpers'
 import { isUrl } from '../../../helpers'
 
 export default ({
-  rowsNames,
+  columns,
   data,
   change,
   remove
@@ -28,26 +28,26 @@ export default ({
   <Table>
     <TableHead>
       <TableRow>
-        {rowsNames.map((rowName, i) => (
-          <TableCell key={i}>{rowName}</TableCell>
+        {columns.map(({ name }, i) => (
+          <TableCell key={i}>{name}</TableCell>
         ))}
       </TableRow>
     </TableHead>
     <TableBody>
-      {extract(data).map((rowData, i) => (
+      {extract(data).map((entry, i) => (
         <TableRow key={i}>
-          {rowsNames.map((rowName, i) => (
+          {columns.map(({ name }, i) => (
             <TableCell key={i}>
-              {isUrl(rowData[rowName])
-                ? <Img src={rowData[rowName]} />
-                : rowData[rowName]}
+              {isUrl(entry[name])
+                ? <Img src={entry[name]} />
+                : entry[name]}
             </TableCell>
           ))}
           <TableCell>
             <ManagementCell
-              id={rowData.id}
+              id={entry.id}
               change={change}
-              remove={change} />
+              remove={remove} />
           </TableCell>
         </TableRow>
       ))}

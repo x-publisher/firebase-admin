@@ -7,23 +7,31 @@ import {
   updateByRef
 } from '../../services/firebase/db'
 
-import Dialog from './ui/Dialog'
-import AddIcon from '@material-ui/icons/Add'
-import Button from '@material-ui/core/Button'
+import ChangeDialog from './ui/ChangeDialog'
+import CreateDialog from './ui/CreateDialog'
 
 import {
   isUrl,
   extractFirebaseDBObject as extract
 } from '../../helpers'
 
+// Relative UI components
+import ButtonAdd from './ui/ButtonAdd'
+
 export default class TableData extends Component {
   state = {
     data: {},
-    dialogIsOpen: false,
-    changingDataId: null
+    changeDialogIsOpen: false,
+    changingDataId: null,
+    
+    createDialogIsOpen: false,
   }
 
-  componentDidMount = async () => {
+  componentDidMount = () => {
+    this.initializeData()
+  }
+
+  initializeData = async () => {
     const { ref } = this.props.config
 
     const data = await getByRef(ref)
@@ -31,53 +39,77 @@ export default class TableData extends Component {
     this.setState({ data })
   }
 
-  changeEntry = id => {
+  changeEntryButtonClick = id => {
     this.setState({
-      dialogIsOpen: true,
+      changeDialogIsOpen: true,
       changingDataId: id
     })
   }
 
-  removeEntry = id => {
-    this.setState({
-      dialogIsOpen: true,
-      changingDataId: id
-    })
+  removeEntryButtonClick = id => {
+    
   }
 
-  handleCloseDialog = () => {
-    this.setState({ dialogIsOpen: false })
+  handleCloseChangeDialog = () => {
+    this.setState({ changeDialogIsOpen: false })
   }
 
-  update = data => {
+  updateEntry = async data => {
     const { ref } = this.props.config
     const { changingDataId } = this.state
 
-    updateByRef(`${ref}/${changingDataId}`, data)
+    await updateByRef(`${ref}/${changingDataId}`, data)
+
+    this.initializeData()
+  }
+
+  createEntryButtonClick = () => {
+    this.setState({
+      createDialogIsOpen: true,
+    })
+  }
+
+  createEntry = async data => {
+    const { ref } = this.props.config
+
+    console.log(data)
+
+    // await updateByRef(`${ref}/${changingDataId}`, data)
+
+    this.initializeData()
+  }
+
+  handleCloseCreateDialog = () => {
+    this.setState({ createDialogIsOpen: false })
   }
 
   render() {
-    const { rowNames } = this.props.config
+    const { columns } = this.props.config
     
     const {
       data,
-      dialogIsOpen,
-      changingDataId
+      changeDialogIsOpen,
+      changingDataId,
+
+      createDialogIsOpen
     } = this.state
 
     const {
-      changeEntry,
-      removeEntry,
-      handleCloseDialog,
-      update
+      changeEntryButtonClick,
+      removeEntryButtonClick,
+      handleCloseChangeDialog,
+      updateEntry,
+
+      handleCloseCreateDialog,
+      createEntry
     } = this
 
     let changingDataObj = {}
     
     const changingData = changingDataId && Object.entries(data[changingDataId])
       .filter(([key, value]) => (
-        rowNames.some(rowName => (
-          key === rowName
+        columns.some(({ name }) => (
+          key === name
         ))
       ))
       .forEach(([key, val]) => changingDataObj[key] = val)
@@ -85,19 +117,26 @@ export default class TableData extends Component {
     return (
       <Fragment>
         <Table
-          rowsNames={rowNames}
+          columns={columns}
           data={data}
-          change={changeEntry}
-          remove={removeEntry} />
-        <Dialog
-          onClose={handleCloseDialog}
-          isOpen={dialogIsOpen}
+          change={changeEntryButtonClick}
+          remove={removeEntryButtonClick} />
+
+        <ChangeDialog
+          onClose={handleCloseChangeDialog}
+          isOpen={changeDialogIsOpen}
           changingData={changingDataObj}
-          rowNames={rowNames}
-          update={update} />
-        <Button variant="fab" color="primary">
-          <AddIcon />
-        </Button>
+          columns={columns}
+          update={updateEntry} />
+          
+        <CreateDialog
+          onClose={handleCloseCreateDialog}
+          isOpen={createDialogIsOpen}
+          columns={columns}
+          create={createEntry} />
+
+        <ButtonAdd
+          onClick={this.createEntryButtonClick} />
       </Fragment>
     )
   }
