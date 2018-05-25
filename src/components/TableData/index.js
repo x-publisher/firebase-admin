@@ -40,8 +40,6 @@ export default class TableData extends Component {
   }
 
   initializeData = async () => {
-    console.log(111)
-
     const { ref } = this.props.config
 
     const data = await getByRef(ref)
@@ -136,12 +134,6 @@ export default class TableData extends Component {
     } = this
 
     let changingDataObj = {}
-
-    console.log('changingDataId', changingDataId)
-    console.log('data', data)
-    console.log('columns', columns)
-    console.log('changingDataObj', changingDataObj)
-    console.log('---')
 
     const changingData = changingDataId && Object.entries(data[changingDataId])
       .filter(([key]) => (

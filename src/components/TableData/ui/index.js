@@ -19,6 +19,29 @@ import Img from '../ui/Img'
 import { extractFirebaseDBObject as extract } from '../../../helpers'
 import { isUrl } from '../../../helpers'
 
+const getTableCellContent = (entry, name, columns) => {
+  const typeOfKey = columns.filter(({ name: _name }) => (
+    name === _name
+  ))[0].type
+
+  if (typeOfKey === 'id')
+    return entry[name]
+
+  if (typeOfKey === 'string')
+    return entry[name]
+
+  if (typeOfKey === 'image')
+    return <Img src={entry[name]} />
+
+  if (typeOfKey === 'boolean')
+    return entry[name].toString()
+
+  if (typeOfKey === 'number')
+    return entry[name]
+
+  return 'test'
+}
+
 export default ({
   columns,
   data,
@@ -38,9 +61,7 @@ export default ({
         <TableRow key={i}>
           {columns.map(({ name }, i) => (
             <TableCell key={i}>
-              {isUrl(entry[name])
-                ? <Img src={entry[name]} />
-                : entry[name]}
+              {getTableCellContent(entry, name, columns)}
             </TableCell>
           ))}
           <TableCell>
