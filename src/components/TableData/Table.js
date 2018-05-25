@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import styled from 'styled-components'
 
 // Material UI
 import Table from '@material-ui/core/Table'
@@ -7,7 +6,6 @@ import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
-import Paper from '@material-ui/core/Paper'
 
 // Inner components
 import ManagementCell from './ManagementCell'
@@ -16,8 +14,10 @@ import ManagementCell from './ManagementCell'
 import Img from '../ui/Img'
 
 // Helpers
-import { extractFirebaseDBObject as extract } from '../../../helpers'
-import { isUrl } from '../../../helpers'
+import {
+  isUrl,
+  extractFirebaseDBObject as extract
+} from '../../helpers'
 
 const getTableCellContent = (entry, name, columns) => {
   const typeOfKey = columns.filter(({ name: _name }) => (
@@ -38,8 +38,6 @@ const getTableCellContent = (entry, name, columns) => {
 
   if (typeOfKey === 'number')
     return entry[name]
-
-  return 'test'
 }
 
 export default ({

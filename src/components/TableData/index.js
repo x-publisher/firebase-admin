@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react'
 
-import Table from './ui'
+import Table from './Table'
 
 import {
   getByRef,
@@ -13,16 +13,14 @@ import {
   upload
 } from '../../services/firebase/storage'
 
-import ChangeDialog from './ui/ChangeDialog'
-import CreateDialog from './ui/CreateDialog'
+import ChangeDialog from './ChangeDialog'
+import CreateDialog from './CreateDialog'
+import ButtonAdd from './ButtonAdd'
 
 import {
   isUrl,
   extractFirebaseDBObject as extract
 } from '../../helpers'
-
-// Relative UI components
-import ButtonAdd from './ui/ButtonAdd'
 
 import shortid from 'shortid'
 
@@ -135,7 +133,7 @@ export default class TableData extends Component {
 
     let changingDataObj = {}
 
-    const changingData = changingDataId && Object.entries(data[changingDataId])
+    changingDataId && Object.entries(data[changingDataId])
       .filter(([key]) => (
         columns.some(({ name }) => (
           key === name

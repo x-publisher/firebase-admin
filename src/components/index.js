@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Route, Link } from "react-router-dom"
 
 import { signInWithEmailAndPassword } from '../services/firebase/auth'
 
+import Container from './ui/Container'
+
 import Clubs from './clubs'
 import Bottles from './bottles'
 import Users from './users'
@@ -21,14 +23,14 @@ class App extends Component {
   render() {
     return (
       <Router>
-        <Fragment>
+        <Container>
           <Route exact path="/" render={() => <div>home</div>} />
           <Route path="/venues" component={Clubs} />
           <Route path="/bottles" component={Bottles} />
           <Route path="/users" component={Users} />
           <Route path="/tickets" component={Tickets} />
           <Route path="/tables" component={Tables} />
-        </Fragment>
+        </Container>
       </Router>
     )
   }
