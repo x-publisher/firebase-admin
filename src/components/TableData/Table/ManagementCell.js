@@ -8,19 +8,22 @@ import EditIcon from '@material-ui/icons/Edit'
 export default ({
   change,
   remove,
-  id
+  id,
+  isLoading,
 }) => (
   <Fragment>
     <IconButton
       onClick={() => change(id)}
       aria-label="Edit"
-      color="primary">
+      color="primary"
+      disabled={isLoading}>
       <EditIcon />
     </IconButton>
     <IconButton
       onClick={() => remove(id)}
       aria-label="Delete"
-      color="primary">
+      color="primary"
+      disabled={isLoading}>
       <DeleteIcon />
     </IconButton>
   </Fragment>

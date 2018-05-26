@@ -1,15 +1,17 @@
 import React, { Component, Fragment } from 'react'
-import { BrowserRouter as Router, Route, Link } from "react-router-dom"
+import { BrowserRouter as Router, Route } from 'react-router-dom'
 
 import { signInWithEmailAndPassword } from '../services/firebase/auth'
 
+// UI
 import Container from './ui/Container'
 
-import Clubs from './clubs'
-import Bottles from './bottles'
-import Users from './users'
-import Tickets from './tickets'
-import Tables from './tables'
+// DB configs
+import dbData from '../config/dbData'
+
+// Relative components
+import Navbar from './Navbar'
+import TableData from './TableData'
 
 class App extends Component {
   componentDidMount = () => (
@@ -21,16 +23,24 @@ class App extends Component {
   )
 
   render() {
+    const menuItems = dbData.map(({ ref }) => ref)
+
     return (
       <Router>
-        <Container>
-          <Route exact path="/" render={() => <div>home</div>} />
-          <Route path="/venues" component={Clubs} />
-          <Route path="/bottles" component={Bottles} />
-          <Route path="/users" component={Users} />
-          <Route path="/tickets" component={Tickets} />
-          <Route path="/tables" component={Tables} />
-        </Container>
+        <Fragment>
+          <Navbar
+            menuItems={menuItems} />
+          <Container>
+            <Route exact path="/" render={() => <div>home</div>} />
+            {dbData.map(config => (
+              <Route
+                path={`/${config.ref}`}
+                render={() =>(
+                  <TableData config={config} />
+                )} />
+            ))}
+          </Container>
+        </Fragment>
       </Router>
     )
   }

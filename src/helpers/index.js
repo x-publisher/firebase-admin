@@ -1,6 +1,9 @@
-import isValidUrl from 'isurl'
-import { upload } from '../services/firebase/storage'
 import shortid from 'shortid'
+
+// Storage services
+import {
+  upload
+} from '../services/firebase/storage'
 
 export const extractFirebaseDBObject = data => (
   Object.entries(data)
@@ -8,15 +11,6 @@ export const extractFirebaseDBObject = data => (
       id, ...props
     }))
 )
-
-export const isUrl = url => {
-  try {
-    new URL(url)
-    return true
-  } catch (error) {
-    return false
-  }
-}
 
 export const uploadFile = async (event, firebaseRef) => {
   const data = event.currentTarget.files[0]

@@ -1,7 +1,6 @@
 import React, { Component, Fragment } from 'react'
 
-import Table from './Table'
-
+// DB service
 import {
   getByRef,
   updateByRef,
@@ -9,26 +8,21 @@ import {
   removeByRef,
 } from '../../services/firebase/db'
 
-import {
-  upload
-} from '../../services/firebase/storage'
-
+// Relative components
+import Table from './Table'
 import Dialog from './Dialog'
+
+// UI
 import ButtonAdd from '../ui/ButtonAdd'
-
-import {
-  isUrl,
-  extractFirebaseDBObject as extract
-} from '../../helpers'
-
-import shortid from 'shortid'
+import Progress from '../ui/Progress'
 
 export default class TableData extends Component {
   state = {
     data: {},
     dialogIsOpen: false,
     changingDataId: null,
-    dialogFormat: 'create', // create | change
+    dialogFormat: 'create', // create | change,
+    isLoading: true,
   }
 
   componentDidMount = () => {
@@ -36,11 +30,29 @@ export default class TableData extends Component {
   }
 
   initializeData = async () => {
+    this.setState({ isLoading: true })
+
     const { ref } = this.props.config
 
     const data = await getByRef(ref)
 
     this.setState({ data })
+
+    this.setState({ isLoading: false })
+  }
+
+  handleCloseDialog = () => {
+    this.setState({
+      dialogIsOpen: false,
+      changingDataId: null
+    })
+  }
+
+  createEntryButtonClick = () => {
+    this.setState({
+      dialogIsOpen: true,
+      dialogFormat: 'create',
+    })
   }
 
   changeEntryButtonClick = id => {
@@ -59,11 +71,14 @@ export default class TableData extends Component {
     this.initializeData()
   }
 
-  handleCloseDialog = () => {
-    this.setState({
-      dialogIsOpen: false,
-      changingDataId: null
-    })
+  createEntry = async data => {
+    const { ref } = this.props.config
+
+    await createByRef(ref, data)
+
+    this.initializeData()
+
+    this.handleCloseDialog()
   }
 
   updateEntry = async data => {
@@ -73,37 +88,26 @@ export default class TableData extends Component {
     await updateByRef(`${ref}/${changingDataId}`, data)
 
     this.initializeData()
+
+    this.handleCloseDialog()
   }
 
-  createEntryButtonClick = () => {
-    this.setState({
-      dialogIsOpen: true,
-      dialogFormat: 'create',
-    })
-  }
+  formatChangingData = (
+    changingDataId,
+    data,
+    columns,
+  ) => {
+    let changingDataObj = {}
 
-  createEntry = async data => {
-    const { ref } = this.props.config
+    changingDataId && Object.entries(data[changingDataId])
+    .filter(([key]) => (
+      columns.some(({ name }) => (
+        key === name
+      ))
+    ))
+    .forEach(([key, val]) => changingDataObj[key] = val)
 
-    await createByRef(ref, data)
-
-    this.initializeData()
-  }
-
-  uploadFile = async (id, data, fieldName) => {
-    const metaData = {
-      contentType: data.type,
-      name: `${shortid.generate()}-${data.name}`
-    }
-  
-    const { ref } = this.props.config
-
-    const url = await upload(`${ref}/${id}`, {
-      file: data,
-      metaData
-    })
-
-    await this.updateEntry({ [fieldName]: url })
+    return changingDataObj
   }
 
   render() {
@@ -118,6 +122,7 @@ export default class TableData extends Component {
       changingDataId,
 
       dialogFormat,
+      isLoading,
     } = this.state
 
     const {
@@ -125,19 +130,21 @@ export default class TableData extends Component {
       removeEntryButtonClick,
       handleCloseDialog,
       updateEntry,
-
       createEntry,
+      createEntryButtonClick,
     } = this
 
-    let changingDataObj = {}
+    const submit = (
+      dialogFormat === 'create'
+        ? createEntry
+        : updateEntry
+    )
 
-    changingDataId && Object.entries(data[changingDataId])
-      .filter(([key]) => (
-        columns.some(({ name }) => (
-          key === name
-        ))
-      ))
-      .forEach(([key, val]) => changingDataObj[key] = val)
+    const changingDataObj = this.formatChangingData(
+      changingDataId,
+      data,
+      columns,
+    )
 
     return (
       <Fragment>
@@ -145,21 +152,23 @@ export default class TableData extends Component {
           columns={columns}
           data={data}
           change={changeEntryButtonClick}
-          remove={removeEntryButtonClick} />
+          remove={removeEntryButtonClick}
+          isLoading={isLoading} />
 
         <Dialog
           onClose={handleCloseDialog}
           isOpen={dialogIsOpen}
           changingData={changingDataObj}
           columns={columns}
-          update={updateEntry}
-          uploadFile={this.uploadFile}
-          create={createEntry}
+          submit={submit}
           firebaseRef={ref}
           dialogFormat={dialogFormat} />
           
         <ButtonAdd
-          onClick={this.createEntryButtonClick} />
+          disabled={isLoading}
+          onClick={createEntryButtonClick} />
+
+        {isLoading && <Progress />}
       </Fragment>
     )
   }

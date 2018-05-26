@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React from 'react'
 
 // Material UI
 import Table from '@material-ui/core/Table'
@@ -7,17 +7,16 @@ import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 
-// Inner components
-import ManagementCell from './ManagementCell'
-
-// UI components
-import Img from '../ui/Img'
-
 // Helpers
 import {
-  isUrl,
   extractFirebaseDBObject as extract
-} from '../../helpers'
+} from '../../../helpers'
+
+// Relative components
+import ManagementCell from './ManagementCell'
+
+// UI
+import Img from '../../ui/Img'
 
 const getTableCellContent = (entry, name, columns) => {
   const typeOfKey = columns.filter(({ name: _name }) => (
@@ -44,7 +43,8 @@ export default ({
   columns,
   data,
   change,
-  remove
+  remove,
+  isLoading,
 }) => (
   <Table>
     <TableHead>
@@ -66,7 +66,8 @@ export default ({
             <ManagementCell
               id={entry.id}
               change={change}
-              remove={remove} />
+              remove={remove}
+              isLoading={isLoading} />
           </TableCell>
         </TableRow>
       ))}
