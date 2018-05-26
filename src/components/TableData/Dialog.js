@@ -6,7 +6,6 @@ import Dialog from '@material-ui/core/Dialog'
 import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
 import IconButton from '@material-ui/core/IconButton'
-import Typography from '@material-ui/core/Typography'
 import CloseIcon from '@material-ui/icons/Close'
 import TextField from '@material-ui/core/TextField'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
@@ -14,15 +13,15 @@ import Checkbox from '@material-ui/core/Checkbox'
 
 import { Formik } from 'formik';
 
-import {
-  uploadFile
-} from '../../helpers'
+import { uploadFile } from '../../helpers'
+
+import Img from '../ui/Img'
 
 import Label from '../ui/Label'
 import DialogBodyContainer from '../ui/DialogBodyContainer'
 import Transition from '../ui/SlideUp'
 
-const createEntry = async (
+const updateOrCreateEntry = async (
   _values,
   setSubmitting,
   imagesUrls,
@@ -50,38 +49,43 @@ class Form extends Component {
 
   render() {
     const {
+      data,
       columns,
       submit,
       upload,
       firebaseRef,
+      dialogFormat,
     } = this.props
 
-    const initialValues = {}
+    const initialValues = { ...data }
 
-    columns.forEach(({ name, type }) => {
-      if (type === 'id')
-        return
-
-      if (type === 'string')
-        initialValues[name] = ''
-
-      if (type === 'number')
-        initialValues[name] = 0
-
-      if (type === 'boolean')
-        initialValues[name] = false
-
-      if (type === 'image')
-        initialValues[name] = ''
-    })
+    if (dialogFormat === 'create') {
+      columns.forEach(({ name, type }) => {
+        if (type === 'id')
+          return
+  
+        if (type === 'string')
+          initialValues[name] = ''
+  
+        if (type === 'number')
+          initialValues[name] = 0
+  
+        if (type === 'boolean')
+          initialValues[name] = false
+  
+        if (type === 'image')
+          initialValues[name] = ''
+      })
+    }
 
     return (
       <Formik
         initialValues={initialValues}
-        onSubmit={async (values, { setSubmitting }) => {
+        enableReinitialize
+        onSubmit={(values, { setSubmitting }) => {
           const { imagesUrls } = this.state
 
-          createEntry(
+          updateOrCreateEntry(
             values, 
             setSubmitting,
             imagesUrls,
@@ -102,9 +106,9 @@ class Form extends Component {
           return (
             <form onSubmit={handleSubmit}>
               {Object.entries(values).map(([key, value]) => {
-                const typeOfKey = columns.filter(({ name, type }) => (
-                  name === key
-                ))[0].type
+                const typeOfKey = columns.filter(({ name }) => {
+                  return name === key
+                })[0].type
 
                 if (typeOfKey === 'string') {
                   return (
@@ -125,25 +129,30 @@ class Form extends Component {
                   return (
                     <div key={key}>
                       <Label>{key}</Label>
-                      <Button
-                        variant="raised"
-                        containerElement='label'
-                        label='My Label'>
-                        <input type="file"
-                          name={key}
-                          onChange={async event => {
-                            setSubmitting(true)
+                      <div>
+                        <Img src={this.state.imagesUrls[key] || value} />
+                      </div>
+                      <div>
+                        <Button
+                          variant="raised"
+                          containerElement='label'
+                          label='My Label'>
+                          <input type="file"
+                            name={key}
+                            onChange={async event => {
+                              setSubmitting(true)
 
-                            const url = await uploadFile(event, firebaseRef)
-  
-                            let imagesUrls = { ...this.state.imagesUrls }
-                            imagesUrls[key] = url
-  
-                            this.setState({ imagesUrls })
+                              const url = await uploadFile(event, firebaseRef)
+    
+                              let imagesUrls = { ...this.state.imagesUrls }
+                              imagesUrls[key] = url
+    
+                              this.setState({ imagesUrls })
 
-                            setSubmitting(false)
-                          }} />
-                      </Button>
+                              setSubmitting(false)
+                            }} />
+                        </Button>
+                      </div>
                     </div>
                   )
                 }
@@ -199,16 +208,25 @@ class Form extends Component {
   }
 }
 
-export default class CreateDialog extends Component {
+export default class DialogComponent extends Component {
   render() {
     const {
       isOpen,
       onClose,
+      changingData,
       columns,
+      update,
       create,
       uploadFile,
       firebaseRef,
+      dialogFormat
     } = this.props
+
+    const submit = (
+      dialogFormat === 'create'
+        ? create
+        : update
+    )
 
     return (
       <Dialog
@@ -222,20 +240,17 @@ export default class CreateDialog extends Component {
             <IconButton color="inherit" onClick={onClose} aria-label="Close">
               <CloseIcon />
             </IconButton>
-            <Typography variant="title" color="inherit">
-              Sound
-            </Typography>
-            <Button color="inherit" onClick={onClose}>
-              save
-            </Button>
+            <div>{dialogFormat}</div>
           </Toolbar>
         </AppBar>
         <DialogBodyContainer>
           <Form
+            data={changingData}
             columns={columns}
-            submit={create}
+            submit={submit}
             upload={uploadFile}
-            firebaseRef={firebaseRef} />
+            firebaseRef={firebaseRef}
+            dialogFormat={dialogFormat} />
         </DialogBodyContainer>
       </Dialog>
     )

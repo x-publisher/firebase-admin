@@ -13,9 +13,8 @@ import {
   upload
 } from '../../services/firebase/storage'
 
-import ChangeDialog from './ChangeDialog'
-import CreateDialog from './CreateDialog'
-import ButtonAdd from './ButtonAdd'
+import Dialog from './Dialog'
+import ButtonAdd from '../ui/ButtonAdd'
 
 import {
   isUrl,
@@ -27,10 +26,9 @@ import shortid from 'shortid'
 export default class TableData extends Component {
   state = {
     data: {},
-    changeDialogIsOpen: false,
+    dialogIsOpen: false,
     changingDataId: null,
-    
-    createDialogIsOpen: false,
+    dialogFormat: 'create', // create | change
   }
 
   componentDidMount = () => {
@@ -47,8 +45,9 @@ export default class TableData extends Component {
 
   changeEntryButtonClick = id => {
     this.setState({
-      changeDialogIsOpen: true,
-      changingDataId: id
+      dialogIsOpen: true,
+      changingDataId: id,
+      dialogFormat: 'change',
     })
   }
 
@@ -60,9 +59,9 @@ export default class TableData extends Component {
     this.initializeData()
   }
 
-  handleCloseChangeDialog = () => {
+  handleCloseDialog = () => {
     this.setState({
-      changeDialogIsOpen: false,
+      dialogIsOpen: false,
       changingDataId: null
     })
   }
@@ -78,7 +77,8 @@ export default class TableData extends Component {
 
   createEntryButtonClick = () => {
     this.setState({
-      createDialogIsOpen: true,
+      dialogIsOpen: true,
+      dialogFormat: 'create',
     })
   }
 
@@ -88,10 +88,6 @@ export default class TableData extends Component {
     await createByRef(ref, data)
 
     this.initializeData()
-  }
-
-  handleCloseCreateDialog = () => {
-    this.setState({ createDialogIsOpen: false })
   }
 
   uploadFile = async (id, data, fieldName) => {
@@ -111,24 +107,26 @@ export default class TableData extends Component {
   }
 
   render() {
-    const { ref, columns } = this.props.config
+    const {
+      ref,
+      columns,
+    } = this.props.config
     
     const {
       data,
-      changeDialogIsOpen,
+      dialogIsOpen,
       changingDataId,
 
-      createDialogIsOpen
+      dialogFormat,
     } = this.state
 
     const {
       changeEntryButtonClick,
       removeEntryButtonClick,
-      handleCloseChangeDialog,
+      handleCloseDialog,
       updateEntry,
 
-      handleCloseCreateDialog,
-      createEntry
+      createEntry,
     } = this
 
     let changingDataObj = {}
@@ -149,23 +147,17 @@ export default class TableData extends Component {
           change={changeEntryButtonClick}
           remove={removeEntryButtonClick} />
 
-        <ChangeDialog
-          onClose={handleCloseChangeDialog}
-          isOpen={changeDialogIsOpen}
+        <Dialog
+          onClose={handleCloseDialog}
+          isOpen={dialogIsOpen}
           changingData={changingDataObj}
           columns={columns}
           update={updateEntry}
           uploadFile={this.uploadFile}
-          firebaseRef={ref} />
-          
-        <CreateDialog
-          onClose={handleCloseCreateDialog}
-          isOpen={createDialogIsOpen}
-          columns={columns}
           create={createEntry}
-          uploadFile={this.uploadFile}
-          firebaseRef={ref} />
-
+          firebaseRef={ref}
+          dialogFormat={dialogFormat} />
+          
         <ButtonAdd
           onClick={this.createEntryButtonClick} />
       </Fragment>
