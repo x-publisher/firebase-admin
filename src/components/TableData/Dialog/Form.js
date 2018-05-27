@@ -209,6 +209,7 @@ export default class Form extends Component {
               >
                 {extractedData.map(entry => (
                   <MenuItem
+                    key={entry.id}
                     value={entry.id}>
                     {entry[keyToShow]}
                   </MenuItem>
