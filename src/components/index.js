@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Route } from 'react-router-dom'
 
 import { signInWithEmailAndPassword } from '../services/firebase/auth'
 
+// Material UI
+import Typography from '@material-ui/core/Typography'
+
 // UI
 import Container from './ui/Container'
 
@@ -53,7 +56,12 @@ class App extends Component {
           <Navbar
             menuItems={menuItems} />
           <Container>
-            <Route exact path="/" render={() => <div>home</div>} />
+            <Route
+              exact
+              path="/"
+              render={() => (
+                <Typography>Select section from right left menu</Typography>
+              )} />
             {dbData.map(config => (
               <Route
                 path={`/${config.ref}`}
