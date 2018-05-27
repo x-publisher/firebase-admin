@@ -8,6 +8,10 @@ import {
   removeByRef,
 } from '../../services/firebase/db'
 
+import {
+  extractFirebaseDBObject as extract,
+} from '../../helpers'
+
 // Relative components
 import Table from './Table'
 import Dialog from './Dialog'
@@ -23,6 +27,8 @@ export default class TableData extends Component {
     changingDataId: null,
     dialogFormat: 'create', // create | change,
     isLoading: true,
+    refDatas: [],
+    refDatasContents: [],
   }
 
   componentDidMount = () => {
@@ -34,11 +40,69 @@ export default class TableData extends Component {
 
     const { ref } = this.props.config
 
-    const data = await getByRef(ref)
+    let data = await getByRef(ref)
+    data = await this.insertRefs(data)
+    
+    this.setState({
+      data,
+      isLoading: false,
+    })
+  }
 
-    this.setState({ data })
+  insertRefs = async data => {
+    const { columns } = this.props.config
 
-    this.setState({ isLoading: false })
+    let refDatas = []
+    
+    for (const { type, name } of columns) {
+      if (typeof type === 'object') {
+        if (type.type === 'refTo') {
+          const ref = type.to
+
+          const refData = await getByRef(ref)
+
+          refDatas.push({
+            key: name,
+            data: refData,
+            name: ref,
+          })
+
+          this.setState({
+            refDatas: [
+              ...this.state.refDatas,
+              ref,
+            ],
+          })
+        }
+      }
+    }
+
+    const newData = extract(data).map(_entry => {
+      let entry = { ..._entry }
+
+      refDatas.forEach(refData => {
+        const { key, data } = refData
+
+        const keyData = entry[key]
+
+        const newKeyData = {
+          ...data[keyData],
+          id: keyData,
+        }
+
+        entry[key] = newKeyData
+      })
+
+      return entry
+    })
+
+    this.setState({ refDatasContents: refDatas })
+
+    let newDataObj = {}
+
+    newData.forEach(({ id, ...rest }) => newDataObj[id] = rest)
+
+    return newDataObj
   }
 
   handleCloseDialog = () => {
@@ -112,6 +176,10 @@ export default class TableData extends Component {
 
   render() {
     const {
+      refData,
+    } = this.props
+
+    const {
       ref,
       columns,
     } = this.props.config
@@ -123,6 +191,8 @@ export default class TableData extends Component {
 
       dialogFormat,
       isLoading,
+
+      refDatasContents,
     } = this.state
 
     const {
@@ -153,7 +223,8 @@ export default class TableData extends Component {
           data={data}
           change={changeEntryButtonClick}
           remove={removeEntryButtonClick}
-          isLoading={isLoading} />
+          isLoading={isLoading}
+          refData={refData} />
 
         <Dialog
           onClose={handleCloseDialog}
@@ -162,7 +233,9 @@ export default class TableData extends Component {
           columns={columns}
           submit={submit}
           firebaseRef={ref}
-          dialogFormat={dialogFormat} />
+          dialogFormat={dialogFormat}
+          refData={refData}
+          refDatasContents={refDatasContents} />
           
         <ButtonAdd
           disabled={isLoading}

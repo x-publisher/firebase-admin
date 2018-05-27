@@ -25,7 +25,10 @@ export default [
         type: 'number'
       }, {
         name: 'ownerId',
-        type: 'string'
+        type: {
+          type: 'refTo',
+          to: 'users'
+        }
       }
     ]
   }, {
@@ -80,7 +83,10 @@ export default [
         type: 'number'
       }, {
         name: 'ownerId',
-        type: 'string'
+        type: {
+          type: 'refTo',
+          to: 'users'
+        }
       }
     ]
   }, {
@@ -106,7 +112,10 @@ export default [
         type: 'number'
       }, {
         name: 'ownerId',
-        type: 'string'
+        type: {
+          type: 'refTo',
+          to: 'users'
+        }
       }
     ]
   }, {
@@ -187,7 +196,10 @@ export default [
         type: 'boolean'
       }, {
         name: 'ownerID',
-        type: 'string'
+        type: {
+          type: 'refTo',
+          to: 'users'
+        }
       }, {
         name: 'objectId',
         type: 'string'

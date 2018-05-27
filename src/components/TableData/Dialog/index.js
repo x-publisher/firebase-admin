@@ -23,7 +23,9 @@ export default class DialogComponent extends Component {
       columns,
       submit,
       firebaseRef,
-      dialogFormat
+      dialogFormat,
+      refData,
+      refDatasContents,
     } = this.props
 
     return (
@@ -46,7 +48,9 @@ export default class DialogComponent extends Component {
             columns={columns}
             submit={submit}
             firebaseRef={firebaseRef}
-            dialogFormat={dialogFormat} />
+            dialogFormat={dialogFormat}
+            refData={refData}
+            refDatasContents={refDatasContents} />
         </DialogBodyContainer>
       </Dialog>
     )

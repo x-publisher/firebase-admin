@@ -18,7 +18,12 @@ import ManagementCell from './ManagementCell'
 // UI
 import Img from '../../ui/Img'
 
-const getTableCellContent = (entry, name, columns) => {
+const getTableCellContent = (
+  entry,
+  name,
+  columns,
+  refData,
+) => {
   const typeOfKey = columns.filter(({ name: _name }) => (
     name === _name
   ))[0].type
@@ -37,6 +42,16 @@ const getTableCellContent = (entry, name, columns) => {
 
   if (typeOfKey === 'number')
     return entry[name]
+
+  if (typeof typeOfKey === 'object') {
+    if (typeOfKey.type === 'refTo') {
+      const keyToShow = refData.filter((({ name }) => (
+        name === typeOfKey.to
+      )))[0].showInTable
+
+      return entry[name][keyToShow]
+    }
+  }
 }
 
 export default ({
@@ -45,6 +60,7 @@ export default ({
   change,
   remove,
   isLoading,
+  refData,
 }) => (
   <Table>
     <TableHead>
@@ -59,7 +75,12 @@ export default ({
         <TableRow key={i}>
           {columns.map(({ name }, i) => (
             <TableCell key={i}>
-              {getTableCellContent(entry, name, columns)}
+              {getTableCellContent(
+                entry,
+                name,
+                columns,
+                refData
+              )}
             </TableCell>
           ))}
           <TableCell>

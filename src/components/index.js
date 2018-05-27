@@ -8,6 +8,7 @@ import Container from './ui/Container'
 
 // DB configs
 import dbData from '../config/dbData'
+import refData from '../config/refData'
 
 // Relative components
 import Navbar from './Navbar'
@@ -36,7 +37,9 @@ class App extends Component {
               <Route
                 path={`/${config.ref}`}
                 render={() =>(
-                  <TableData config={config} />
+                  <TableData
+                    config={config}
+                    refData={refData} />
                 )} />
             ))}
           </Container>

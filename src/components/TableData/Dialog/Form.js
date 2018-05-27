@@ -5,18 +5,23 @@ import TextField from '@material-ui/core/TextField'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Checkbox from '@material-ui/core/Checkbox'
 import Button from '@material-ui/core/Button'
+import Select from '@material-ui/core/Select'
+import MenuItem from '@material-ui/core/MenuItem'
+import InputLabel from '@material-ui/core/InputLabel'
 
 // Form helper lib
 import { Formik } from 'formik';
 
 // Helper
 import {
-  uploadFile
+  uploadFile,
+  extractFirebaseDBObject as extract,
 } from '../../../helpers'
 
 // UI
 import Img from '../../ui/Img'
 import Label from '../../ui/Label'
+import FormControl from '../../ui/FormControl'
 
 export default class Form extends Component {
   constructor(props) {
@@ -27,6 +32,9 @@ export default class Form extends Component {
       data,
       dialogFormat,
       columns,
+
+      refData,
+      refDatasContents,
     } = props
 
     this.state = {
@@ -35,6 +43,9 @@ export default class Form extends Component {
       data,
       dialogFormat,
       columns,
+
+      refData,
+      refDatasContents,
     }
   }
 
@@ -151,6 +162,63 @@ export default class Form extends Component {
         </div>
       )
     }
+
+    if (typeof typeOfKey === 'object') {
+      if (typeOfKey.type === 'refTo') {
+        const {
+          refData,
+          refDatasContents,
+          dialogFormat,
+        } = this.state
+
+        const ref = typeOfKey.to
+
+        const keyToShow = refData.filter((({ name }) => (
+          name === ref
+        )))[0].showInTable
+
+        const targetData = refDatasContents.filter(({ name }) => (
+          name === ref
+        ))[0].data
+
+        const extractedData = extract(targetData)
+
+        return (
+          <div key={key}>
+            <FormControl>
+              <InputLabel
+                htmlFor={key}>
+                {key}
+              </InputLabel>
+              <Select
+                value={value.id || ''}
+                defaultValue={value.id}
+                inputProps={{
+                  name: key,
+                  id: key,
+                }}
+                onChange={event => {
+                  const { value } = event.target
+
+                  const newValue = extractedData.filter(({ id }) => (
+                    id === value
+                  ))[0]
+
+                  setFieldValue(key, newValue)
+                }}
+              >
+                {extractedData.map(entry => (
+                  <MenuItem
+                    value={entry.id}>
+                    {entry[keyToShow]}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+        )
+      }
+    }
   }
 
   getInitialValues = () => {
@@ -161,6 +229,14 @@ export default class Form extends Component {
     } = this.state
 
     const initialValues = { ...data }
+
+    columns.forEach(({ name, type }) => {
+      if (typeof type === 'object') {
+        if (type.type === 'refTo') {
+          return initialValues[name]
+        }
+      }
+    })
 
     if (dialogFormat === 'create') {
       columns.forEach(({ name, type }) => {
@@ -178,6 +254,12 @@ export default class Form extends Component {
   
         if (type === 'image')
           initialValues[name] = ''
+
+        if (typeof type === 'object') {
+          if (type.type === 'refTo') {
+            initialValues[name] = ''
+          }
+        }
       })
     }
 
@@ -197,8 +279,27 @@ export default class Form extends Component {
       <Formik
         initialValues={initialValues}
         enableReinitialize
-        onSubmit={(values, { setSubmitting }) => {
-          const { imagesUrls } = this.state
+        onSubmit={(_values, { setSubmitting }) => {
+          const {
+            imagesUrls,
+            refData,
+          } = this.state
+
+          let values = { ..._values }
+
+          columns.forEach(({ name, type }) => {
+            if (typeof type === 'object') {
+              if (type.type === 'refTo') {
+                const ref = type.to
+
+                const keyToShow = refData.filter((({ name }) => (
+                  name === ref
+                )))[0].showInTable
+
+                values[name] = values[name].id
+              }
+            }
+          })
 
           this.updateOrCreateEntry(
             values, 
