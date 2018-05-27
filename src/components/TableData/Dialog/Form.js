@@ -297,7 +297,7 @@ export default class Form extends Component {
                   name === ref
                 )))[0].showInTable
 
-                values[name] = values[name].id
+                values[name] = values[name].id || ''
               }
             }
           })
