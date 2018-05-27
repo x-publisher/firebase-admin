@@ -1,5 +1,10 @@
 # Admin panel for Firebase projects
 
+## Configuration
+Make sure you use right config for firebase project and right credentioals for signing in to interact with database:
+
+`/src/config/firebase.js`
+
 ## Installation
 ### Install firebaset-cli
 `$ npm install -g firebase-tools`
