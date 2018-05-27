@@ -4,7 +4,7 @@
 ### Install firebaset-cli
 `$ npm install -g firebase-tools`
 
-### CLone repo
+### Clone repo
 `$ git clone #repo-url`
 
 ### Go to project dir
@@ -27,3 +27,5 @@ https://firebase.google.com/docs/hosting/quickstart
 
 ### Deploy project
 `$ npm run deploy` | `$ yarn deploy`
+
+Note: it will hosted in firebase using this project. You can also get project build (/build folder) and host it everywhere.
