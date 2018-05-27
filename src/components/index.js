@@ -6,24 +6,45 @@ import { signInWithEmailAndPassword } from '../services/firebase/auth'
 // UI
 import Container from './ui/Container'
 
-// DB configs
+// Configs
 import dbData from '../config/dbData'
 import refData from '../config/refData'
+import { authCreds } from '../config/firebase'
 
 // Relative components
 import Navbar from './Navbar'
 import TableData from './TableData'
+import ErrorCatcher from './ErrorCatcher'
 
 class App extends Component {
-  componentDidMount = () => (
-    // FOR TESTING
+  state = {
+    hasError: false,
+  }
+
+  componentDidMount = () => {
+    const {
+      email,
+      password,
+    } = authCreds
+
     signInWithEmailAndPassword(
-      'jpacker@siu.edu',
-      'Chasingdr3ams.'
+      email,
+      password,
     )
-  )
+  }
+
+  componentDidCatch = (error, info) => {
+    this.setState({ hasError: true })
+
+    console.error(error)
+    console.info('Error component stack: ', info)
+  }
 
   render() {
+    const {
+      hasError,
+    } = this.state
+
     const menuItems = dbData.map(({ ref }) => ref)
 
     return (
@@ -43,6 +64,7 @@ class App extends Component {
                 )} />
             ))}
           </Container>
+          {hasError && <ErrorCatcher />}
         </Fragment>
       </Router>
     )
