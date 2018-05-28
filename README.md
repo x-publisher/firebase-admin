@@ -34,3 +34,7 @@ https://firebase.google.com/docs/hosting/quickstart
 `$ npm run deploy` | `$ yarn deploy`
 
 Note: it will hosted in firebase using this project. You can also get project build (/build folder) and host it everywhere.
+
+
+## Sample
+Example app https://imp-app-8eb8b.firebaseapp.com/clubs
