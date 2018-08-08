@@ -1,24 +1,21 @@
-import React, { Component, Fragment } from 'react'
-
+import React, { Component, Fragment } from 'react';
 // DB service
 import {
   getByRef,
   updateByRef,
   createByRef,
   removeByRef,
-} from '../../services/firebase/db'
-
+} from '../../services/firebase/db';
+// Helpers
 import {
   extractFirebaseDBObject as extract,
-} from '../../helpers'
-
+} from '../../helpers';
 // Relative components
-import Table from './Table'
-import Dialog from './Dialog'
-
+import Table from './Table';
+import Dialog from './Dialog';
 // UI
-import ButtonAdd from '../ui/ButtonAdd'
-import Progress from '../ui/Progress'
+import ButtonAdd from '../ui/ButtonAdd';
+import Progress from '../ui/Progress';
 
 export default class TableData extends Component {
   state = {
@@ -32,128 +29,128 @@ export default class TableData extends Component {
   }
 
   componentDidMount = () => {
-    this.initializeData()
+    this.initializeData();
   }
 
   initializeData = async () => {
-    this.setState({ isLoading: true })
+    this.setState({ isLoading: true });
 
-    const { ref } = this.props.config
+    const { ref } = this.props.config;
 
-    let data = await getByRef(ref)
-    data = await this.insertRefs(data)
-    
+    let data = await getByRef(ref);
+    data = await this.insertRefs(data);
+
     this.setState({
       data,
       isLoading: false,
-    })
+    });
   }
 
-  insertRefs = async data => {
-    const { columns } = this.props.config
+  insertRefs = async (data) => {
+    const { columns } = this.props.config;
 
-    let refDatas = []
-    
+    const refDatas = [];
+
     for (const { type, name } of columns) {
       if (typeof type === 'object') {
         if (type.type === 'refTo') {
-          const ref = type.to
+          const ref = type.to;
 
-          const refData = await getByRef(ref)
+          const refData = await getByRef(ref);
 
           refDatas.push({
             key: name,
             data: refData,
             name: ref,
-          })
+          });
 
           this.setState({
             refDatas: [
               ...this.state.refDatas,
               ref,
             ],
-          })
+          });
         }
       }
     }
 
-    const newData = extract(data).map(_entry => {
-      let entry = { ..._entry }
+    const newData = extract(data).map((_entry) => {
+      const entry = { ..._entry };
 
-      refDatas.forEach(refData => {
-        const { key, data } = refData
+      refDatas.forEach((refData) => {
+        const { key, data } = refData;
 
-        const keyData = entry[key]
+        const keyData = entry[key];
 
         const newKeyData = {
           ...data[keyData],
           id: keyData,
-        }
+        };
 
-        entry[key] = newKeyData
-      })
+        entry[key] = newKeyData;
+      });
 
-      return entry
-    })
+      return entry;
+    });
 
-    this.setState({ refDatasContents: refDatas })
+    this.setState({ refDatasContents: refDatas });
 
-    let newDataObj = {}
+    const newDataObj = {};
 
-    newData.forEach(({ id, ...rest }) => newDataObj[id] = rest)
+    newData.forEach(({ id, ...rest }) => newDataObj[id] = rest);
 
-    return newDataObj
+    return newDataObj;
   }
 
   handleCloseDialog = () => {
     this.setState({
       dialogIsOpen: false,
-      changingDataId: null
-    })
+      changingDataId: null,
+    });
   }
 
   createEntryButtonClick = () => {
     this.setState({
       dialogIsOpen: true,
       dialogFormat: 'create',
-    })
+    });
   }
 
-  changeEntryButtonClick = id => {
+  changeEntryButtonClick = (id) => {
     this.setState({
       dialogIsOpen: true,
       changingDataId: id,
       dialogFormat: 'change',
-    })
+    });
   }
 
-  removeEntryButtonClick = async id => {
-    const { ref } = this.props.config
+  removeEntryButtonClick = async (id) => {
+    const { ref } = this.props.config;
 
-    await removeByRef(`${ref}/${id}`)
+    await removeByRef(`${ref}/${id}`);
 
-    this.initializeData()
+    this.initializeData();
   }
 
-  createEntry = async data => {
-    const { ref } = this.props.config
+  createEntry = async (data) => {
+    const { ref } = this.props.config;
 
-    await createByRef(ref, data)
+    await createByRef(ref, data);
 
-    this.initializeData()
+    this.initializeData();
 
-    this.handleCloseDialog()
+    this.handleCloseDialog();
   }
 
-  updateEntry = async data => {
-    const { ref } = this.props.config
-    const { changingDataId } = this.state
+  updateEntry = async (data) => {
+    const { ref } = this.props.config;
+    const { changingDataId } = this.state;
 
-    await updateByRef(`${ref}/${changingDataId}`, data)
+    await updateByRef(`${ref}/${changingDataId}`, data);
 
-    this.initializeData()
+    this.initializeData();
 
-    this.handleCloseDialog()
+    this.handleCloseDialog();
   }
 
   formatChangingData = (
@@ -161,29 +158,31 @@ export default class TableData extends Component {
     data,
     columns,
   ) => {
-    let changingDataObj = {}
+    const changingDataObj = {};
 
-    changingDataId && Object.entries(data[changingDataId])
-    .filter(([key]) => (
-      columns.some(({ name }) => (
-        key === name
-      ))
-    ))
-    .forEach(([key, val]) => changingDataObj[key] = val)
+    if (changingDataId) {
+      Object.entries(data[changingDataId])
+        .filter(([key]) => (
+          columns.some(({ name }) => (
+            key === name
+          ))
+        ))
+        .forEach(([key, val]) => { changingDataObj[key] = val; });
+    }
 
-    return changingDataObj
+    return changingDataObj;
   }
 
   render() {
     const {
       refData,
-    } = this.props
+    } = this.props;
 
     const {
       ref,
       columns,
-    } = this.props.config
-    
+    } = this.props.config;
+
     const {
       data,
       dialogIsOpen,
@@ -193,7 +192,7 @@ export default class TableData extends Component {
       isLoading,
 
       refDatasContents,
-    } = this.state
+    } = this.state;
 
     const {
       changeEntryButtonClick,
@@ -202,19 +201,19 @@ export default class TableData extends Component {
       updateEntry,
       createEntry,
       createEntryButtonClick,
-    } = this
+    } = this;
 
     const submit = (
       dialogFormat === 'create'
         ? createEntry
         : updateEntry
-    )
+    );
 
     const changingDataObj = this.formatChangingData(
       changingDataId,
       data,
       columns,
-    )
+    );
 
     return (
       <Fragment>
@@ -224,7 +223,8 @@ export default class TableData extends Component {
           change={changeEntryButtonClick}
           remove={removeEntryButtonClick}
           isLoading={isLoading}
-          refData={refData} />
+          refData={refData}
+        />
 
         <Dialog
           onClose={handleCloseDialog}
@@ -235,14 +235,16 @@ export default class TableData extends Component {
           firebaseRef={ref}
           dialogFormat={dialogFormat}
           refData={refData}
-          refDatasContents={refDatasContents} />
-          
+          refDatasContents={refDatasContents}
+        />
+
         <ButtonAdd
           disabled={isLoading}
-          onClick={createEntryButtonClick} />
+          onClick={createEntryButtonClick}
+        />
 
         {isLoading && <Progress />}
       </Fragment>
-    )
+    );
   }
 }

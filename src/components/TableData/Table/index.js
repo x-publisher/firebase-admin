@@ -1,22 +1,18 @@
-import React from 'react'
-
+import React from 'react';
 // Material UI
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
-
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 // Helpers
 import {
-  extractFirebaseDBObject as extract
-} from '../../../helpers'
-
+  extractFirebaseDBObject as extract,
+} from '../../../helpers';
 // Relative components
-import ManagementCell from './ManagementCell'
-
+import ManagementCell from './ManagementCell';
 // UI
-import Img from '../../ui/Img'
+import Img from '../../ui/Img';
 
 const getTableCellContent = (
   entry,
@@ -26,33 +22,30 @@ const getTableCellContent = (
 ) => {
   const typeOfKey = columns.filter(({ name: _name }) => (
     name === _name
-  ))[0].type
+  ))[0].type;
 
-  if (typeOfKey === 'id')
-    return entry[name]
+  if (typeOfKey === 'id') { return entry[name]; }
 
-  if (typeOfKey === 'string')
-    return entry[name]
+  if (typeOfKey === 'string') { return entry[name]; }
 
-  if (typeOfKey === 'image')
-    return <Img src={entry[name]} />
+  if (typeOfKey === 'image') { return <Img src={entry[name]} />; }
 
-  if (typeOfKey === 'boolean')
-    return entry[name].toString()
+  if (typeOfKey === 'boolean') { return entry[name].toString(); }
 
-  if (typeOfKey === 'number')
-    return entry[name]
+  if (typeOfKey === 'number') { return entry[name]; }
 
   if (typeof typeOfKey === 'object') {
     if (typeOfKey.type === 'refTo') {
       const keyToShow = refData.filter((({ name }) => (
         name === typeOfKey.to
-      )))[0].showInTable
+      )))[0].showInTable;
 
-      return entry[name][keyToShow]
+      return entry[name][keyToShow];
     }
   }
-}
+
+  return 'undefined';
+};
 
 export default ({
   columns,
@@ -65,21 +58,23 @@ export default ({
   <Table>
     <TableHead>
       <TableRow>
-        {columns.map(({ name }, i) => (
-          <TableCell key={i}>{name}</TableCell>
+        {columns.map(({ id, name }) => (
+          <TableCell key={id}>
+            {name}
+          </TableCell>
         ))}
       </TableRow>
     </TableHead>
     <TableBody>
-      {extract(data).map((entry, i) => (
-        <TableRow key={i}>
-          {columns.map(({ name }, i) => (
-            <TableCell key={i}>
+      {extract(data).map(entry => (
+        <TableRow key={entry.id}>
+          {columns.map(({ name }) => (
+            <TableCell key={entry.id}>
               {getTableCellContent(
                 entry,
                 name,
                 columns,
-                refData
+                refData,
               )}
             </TableCell>
           ))}
@@ -88,10 +83,11 @@ export default ({
               id={entry.id}
               change={change}
               remove={remove}
-              isLoading={isLoading} />
+              isLoading={isLoading}
+            />
           </TableCell>
         </TableRow>
       ))}
     </TableBody>
   </Table>
-)
+);

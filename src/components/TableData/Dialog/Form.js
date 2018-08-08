@@ -1,31 +1,27 @@
-import React, { Component } from 'react'
-
+import React, { Component } from 'react';
 // Material UI
-import TextField from '@material-ui/core/TextField'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Checkbox from '@material-ui/core/Checkbox'
-import Button from '@material-ui/core/Button'
-import Select from '@material-ui/core/Select'
-import MenuItem from '@material-ui/core/MenuItem'
-import InputLabel from '@material-ui/core/InputLabel'
-
+import TextField from '@material-ui/core/TextField';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
+import Button from '@material-ui/core/Button';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import InputLabel from '@material-ui/core/InputLabel';
 // Form helper lib
 import { Formik } from 'formik';
-
 // Helper
 import {
   uploadFile,
   extractFirebaseDBObject as extract,
-} from '../../../helpers'
-
+} from '../../../helpers';
 // UI
-import Img from '../../ui/Img'
-import Label from '../../ui/Label'
-import FormControl from '../../ui/FormControl'
+import Img from '../../ui/Img';
+import Label from '../../ui/Label';
+import FormControl from '../../ui/FormControl';
 
 export default class Form extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     const {
       firebaseRef,
@@ -35,7 +31,7 @@ export default class Form extends Component {
 
       refData,
       refDatasContents,
-    } = props
+    } = props;
 
     this.state = {
       imagesUrls: {},
@@ -46,28 +42,47 @@ export default class Form extends Component {
 
       refData,
       refDatasContents,
-    }
+    };
   }
 
-  updateOrCreateEntry = async (
-    _values,
-    setSubmitting,
-    imagesUrls,
-    submit,
-  ) => {
-    let values = { ..._values }
-  
-    Object.entries(values).forEach(([key, value]) => {
-      Object.entries(imagesUrls).forEach(([_key, url]) => {
-        if (key === _key) {
-          values[key] = url
+  getInitialValues = () => {
+    const {
+      columns,
+      data,
+      dialogFormat,
+    } = this.state;
+
+    const initialValues = { ...data };
+
+    columns.forEach(({ name, type }) => {
+      if (typeof type === 'object') {
+        if (type.type === 'refTo') {
+          return initialValues[name];
         }
-      })
-    })
-  
-    await submit(values)
-  
-    setSubmitting(false)
+      }
+    });
+
+    if (dialogFormat === 'create') {
+      columns.forEach(({ name, type }) => {
+        if (type === 'id') { return; }
+
+        if (type === 'string') { initialValues[name] = ''; }
+
+        if (type === 'number') { initialValues[name] = 0; }
+
+        if (type === 'boolean') { initialValues[name] = false; }
+
+        if (type === 'image') { initialValues[name] = ''; }
+
+        if (typeof type === 'object') {
+          if (type.type === 'refTo') {
+            initialValues[name] = '';
+          }
+        }
+      });
+    }
+
+    return initialValues;
   }
 
   getFormData = ({
@@ -78,7 +93,7 @@ export default class Form extends Component {
     setFieldValue,
     setSubmitting,
   }) => {
-    const { firebaseRef } = this.state
+    const { firebaseRef } = this.state;
 
     if (typeOfKey === 'string') {
       return (
@@ -86,45 +101,51 @@ export default class Form extends Component {
           <TextField
             label={key}
             value={value}
-            onChange={event => {
-              const { value } = event.target
-              setFieldValue(key, value)
+            onChange={(event) => {
+              const { value } = event.target;
+              setFieldValue(key, value);
             }}
-            margin="normal" />
+            margin="normal"
+          />
         </div>
-      )
+      );
     }
 
     if (typeOfKey === 'image') {
       return (
         <div key={key}>
-          <Label>{key}</Label>
+          <Label>
+            {key}
+          </Label>
           <div>
             <Img src={this.state.imagesUrls[key] || value} />
           </div>
           <div>
             <Button
               variant="raised"
-              containerElement='label'
-              label='My Label'>
-              <input type="file"
+              containerElement="label"
+              label="My Label"
+            >
+              <input
+                type="file"
                 name={key}
-                onChange={async event => {
-                  setSubmitting(true)
+                onChange={async (event) => {
+                  setSubmitting(true);
 
-                  const url = await uploadFile(event, firebaseRef)
+                  const url = await uploadFile(event, firebaseRef);
 
-                  let imagesUrls = { ...this.state.imagesUrls }
-                  imagesUrls[key] = url
+                  const imagesUrls = { ...this.state.imagesUrls };
+                  imagesUrls[key] = url;
 
-                  this.setState({ imagesUrls })
+                  this.setState({ imagesUrls });
 
-                  setSubmitting(false)
-                }} />
+                  setSubmitting(false);
+                }}
+              />
             </Button>
           </div>
         </div>
-      )
+      );
     }
 
     if (typeOfKey === 'number') {
@@ -133,21 +154,22 @@ export default class Form extends Component {
           <TextField
             label={key}
             value={value}
-            onChange={event => {
-              const { value } = event.target
-              setFieldValue(key, value)
+            onChange={(event) => {
+              const { value } = event.target;
+              setFieldValue(key, value);
             }}
             type="number"
-            margin="normal" />
+            margin="normal"
+          />
         </div>
-      )
+      );
     }
 
     if (typeOfKey === 'boolean') {
       return (
         <div key={key}>
           <FormControlLabel
-            control={
+            control={(
               <Checkbox
                 checked={value}
                 onChange={(event, checked) => {
@@ -156,11 +178,11 @@ export default class Form extends Component {
                 color="primary"
                 value="checkedB"
               />
-            }
+)}
             label={key}
           />
         </div>
-      )
+      );
     }
 
     if (typeof typeOfKey === 'object') {
@@ -169,25 +191,26 @@ export default class Form extends Component {
           refData,
           refDatasContents,
           dialogFormat,
-        } = this.state
+        } = this.state;
 
-        const ref = typeOfKey.to
+        const ref = typeOfKey.to;
 
         const keyToShow = refData.filter((({ name }) => (
           name === ref
-        )))[0].showInTable
+        )))[0].showInTable;
 
         const targetData = refDatasContents.filter(({ name }) => (
           name === ref
-        ))[0].data
+        ))[0].data;
 
-        const extractedData = extract(targetData)
+        const extractedData = extract(targetData);
 
         return (
           <div key={key}>
             <FormControl>
               <InputLabel
-                htmlFor={key}>
+                htmlFor={key}
+              >
                 {key}
               </InputLabel>
               <Select
@@ -197,84 +220,62 @@ export default class Form extends Component {
                   name: key,
                   id: key,
                 }}
-                onChange={event => {
-                  const { value } = event.target
+                onChange={(event) => {
+                  const { value } = event.target;
 
                   const newValue = extractedData.filter(({ id }) => (
                     id === value
-                  ))[0]
+                  ))[0];
 
-                  setFieldValue(key, newValue)
+                  setFieldValue(key, newValue);
                 }}
               >
                 {extractedData.map(entry => (
                   <MenuItem
                     key={entry.id}
-                    value={entry.id}>
+                    value={entry.id}
+                  >
                     {entry[keyToShow]}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </div>
-        )
+        );
       }
     }
   }
 
-  getInitialValues = () => {
-    const {
-      columns,
-      data,
-      dialogFormat,
-    } = this.state
+  updateOrCreateEntry = async (
+    _values,
+    setSubmitting,
+    imagesUrls,
+    submit,
+  ) => {
+    const values = { ..._values };
 
-    const initialValues = { ...data }
-
-    columns.forEach(({ name, type }) => {
-      if (typeof type === 'object') {
-        if (type.type === 'refTo') {
-          return initialValues[name]
+    Object.entries(values).forEach(([key, value]) => {
+      Object.entries(imagesUrls).forEach(([_key, url]) => {
+        if (key === _key) {
+          values[key] = url;
         }
-      }
-    })
+      });
+    });
 
-    if (dialogFormat === 'create') {
-      columns.forEach(({ name, type }) => {
-        if (type === 'id')
-          return
-  
-        if (type === 'string')
-          initialValues[name] = ''
-  
-        if (type === 'number')
-          initialValues[name] = 0
-  
-        if (type === 'boolean')
-          initialValues[name] = false
-  
-        if (type === 'image')
-          initialValues[name] = ''
+    await submit(values);
 
-        if (typeof type === 'object') {
-          if (type.type === 'refTo') {
-            initialValues[name] = ''
-          }
-        }
-      })
-    }
-
-    return initialValues
+    setSubmitting(false);
   }
+
 
   render() {
     const {
       columns,
       submit,
       dialogFormat,
-    } = this.props
+    } = this.props;
 
-    const initialValues = this.getInitialValues()
+    const initialValues = this.getInitialValues();
 
     return (
       <Formik
@@ -284,30 +285,30 @@ export default class Form extends Component {
           const {
             imagesUrls,
             refData,
-          } = this.state
+          } = this.state;
 
-          let values = { ..._values }
+          const values = { ..._values };
 
           columns.forEach(({ name, type }) => {
             if (typeof type === 'object') {
               if (type.type === 'refTo') {
-                const ref = type.to
+                const ref = type.to;
 
                 const keyToShow = refData.filter((({ name }) => (
                   name === ref
-                )))[0].showInTable
+                )))[0].showInTable;
 
-                values[name] = values[name].id || ''
+                values[name] = values[name].id || '';
               }
             }
-          })
+          });
 
           this.updateOrCreateEntry(
-            values, 
+            values,
             setSubmitting,
             imagesUrls,
             submit,
-          )
+          );
         }}
         render={({
           values,
@@ -316,38 +317,35 @@ export default class Form extends Component {
           isSubmitting,
           setFieldValue,
           setSubmitting,
-        }) => {
-          return (
-            <form onSubmit={handleSubmit}>
-              {Object.entries(values).map(([key, value]) => {
-                const typeOfKey = columns.filter(({ name }) => {
-                  return name === key
-                })[0].type
+        }) => (
+          <form onSubmit={handleSubmit}>
+            {Object.entries(values).map(([key, value]) => {
+              const typeOfKey = columns.filter(({ name }) => name === key)[0].type;
 
-                const nextFormComponent = this.getFormData({
-                  key,
-                  value,
-                  typeOfKey,
-                }, {
-                  setFieldValue,
-                  setSubmitting,
-                })
+              const nextFormComponent = this.getFormData({
+                key,
+                value,
+                typeOfKey,
+              }, {
+                setFieldValue,
+                setSubmitting,
+              });
 
-                return nextFormComponent
-              })}
-              <Button
-                variant="raised"
-                type="submit"
-                disabled={isSubmitting}
-                color="primary">
-                {dialogFormat === 'create'
-                  ? 'create'
-                  : 'save'}
-              </Button>
-            </form>
-          )
-        }}
+              return nextFormComponent;
+            })}
+            <Button
+              variant="raised"
+              type="submit"
+              disabled={isSubmitting}
+              color="primary"
+            >
+              {dialogFormat === 'create'
+                ? 'create'
+                : 'save'}
+            </Button>
+          </form>
+        )}
       />
-    )
+    );
   }
 }

@@ -1,10 +1,8 @@
-import React, { Component, Fragment } from 'react'
-
+import React from 'react';
 // Material UI
-import Snackbar from '@material-ui/core/Snackbar'
-import IconButton from '@material-ui/core/IconButton'
-import CloseIcon from '@material-ui/icons/Close'
-import Button from '@material-ui/core/Button'
+import Snackbar from '@material-ui/core/Snackbar';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 
 class ErrorSnackbar extends React.Component {
   state = {
@@ -12,15 +10,15 @@ class ErrorSnackbar extends React.Component {
   }
 
   handleClick = () => {
-    this.setState({ open: true })
+    this.setState({ open: true });
   }
 
   handleClose = (event, reason) => {
     if (reason === 'clickaway') {
-      return
+      return;
     }
 
-    this.setState({ open: false })
+    this.setState({ open: false });
   }
 
   render() {
@@ -37,7 +35,11 @@ class ErrorSnackbar extends React.Component {
           ContentProps={{
             'aria-describedby': 'message-id',
           }}
-          message={<span id="message-id">Error occured</span>}
+          message={(
+            <span id="message-id">
+              Error occured
+            </span>
+          )}
           action={[
             <IconButton
               key="close"
@@ -50,8 +52,8 @@ class ErrorSnackbar extends React.Component {
           ]}
         />
       </div>
-    )
+    );
   }
 }
 
-export default ErrorSnackbar
+export default ErrorSnackbar;
