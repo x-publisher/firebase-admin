@@ -1,11 +1,11 @@
 # Admin panel for Firebase projects
 
-## Configuration
+# Configuration
 Make sure you use right config for firebase project and right credentioals for signing in to interact with database:
 
 `/src/config/firebase.js`
 
-## Installation
+# Installation
 ### Install firebaset-cli
 `$ npm install -g firebase-tools`
 
@@ -21,7 +21,7 @@ Make sure you use right config for firebase project and right credentioals for s
 ### Start local development
 `$ npm start` | `$ yarn start`
 
-## Deploy
+# Deploy
 ### Make sure you selected firebase project
 `$ firebase use #project-name`
 
@@ -35,6 +35,9 @@ https://firebase.google.com/docs/hosting/quickstart
 
 Note: it will hosted in firebase using this project. You can also get project build (/build folder) and host it everywhere.
 
-
-## Sample
+# Live example
 Example app https://imp-app-8eb8b.firebaseapp.com/clubs
+
+# Database shape
+Database must have shape like this
+https://imp-app-8eb8b.firebaseio.com/.json
