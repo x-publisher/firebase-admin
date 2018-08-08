@@ -1,18 +1,15 @@
-import React, { Component } from 'react'
-
+import React, { Component } from 'react';
 // Material UI
-import Dialog from '@material-ui/core/Dialog'
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
-import IconButton from '@material-ui/core/IconButton'
-import CloseIcon from '@material-ui/icons/Close'
-
+import Dialog from '@material-ui/core/Dialog';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 // Relative components
-import Form from './Form'
-
+import Form from './Form';
 // UI
-import DialogBodyContainer from '../../ui/DialogBodyContainer'
-import Transition from '../../ui/SlideUp'
+import DialogBodyContainer from '../../ui/DialogBodyContainer';
+import Transition from '../../ui/SlideUp';
 
 export default class DialogComponent extends Component {
   render() {
@@ -26,7 +23,7 @@ export default class DialogComponent extends Component {
       dialogFormat,
       refData,
       refDatasContents,
-    } = this.props
+    } = this.props;
 
     return (
       <Dialog
@@ -50,9 +47,10 @@ export default class DialogComponent extends Component {
             firebaseRef={firebaseRef}
             dialogFormat={dialogFormat}
             refData={refData}
-            refDatasContents={refDatasContents} />
+            refDatasContents={refDatasContents}
+          />
         </DialogBodyContainer>
       </Dialog>
-    )
+    );
   }
 }
