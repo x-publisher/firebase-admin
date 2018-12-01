@@ -1,3 +1,5 @@
+# DEPRECATED
+
 # Admin panel for Firebase projects
 
 # Installation
